@@ -1,0 +1,21 @@
+﻿# Python virtual environments & cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# OS metadata files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Track main production model & class mapping, ignore temporary backups
+models/*.tmp.h5
+models/archive/*.h5
+*.db
+*.sqlite3
+
+# Local IDE settings
+.vscode/
+.idea/
