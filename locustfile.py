@@ -1,4 +1,4 @@
-﻿import os
+import os
 import glob
 from locust import HttpUser, task, between
 
