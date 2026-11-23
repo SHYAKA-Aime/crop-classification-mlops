@@ -51,9 +51,9 @@ with tab1:
         )
         st.plotly_chart(fig1, use_container_width=True)
         st.info(
-            "**What Story Does It Tell?** Just as our Intro to ML study on the Winnipeg optical-radar dataset "
+            "**What Story Does It Tell?** Just as the Intro to ML study on the Winnipeg optical-radar dataset "
             "revealed class distribution skew across crop types, monitoring sample counts per crop class ensures "
-            "no single crop dominates gradient updates. Balanced representation explains why our MobileNetV2 model "
+            "no single crop dominates gradient updates. Balanced representation explains why the MobileNetV2 model "
             "achieves 0.9111 Weighted F1-Score alongside 0.9091 Accuracy, and lets operators spot underrepresented "
             "crops that need additional training uploads in Tab 3."
         )
@@ -90,7 +90,7 @@ with tab1:
             "**What Story Does It Tell?** Pixel contrast standard deviation captures canopy texture granularity—"
             "separating high-contrast crops (such as white cotton bolls against dark foliage or structured maize rows) "
             "from smoother, uniform canopies like soyabean. Meanwhile, the wide horizontal spread in brightness across "
-            "field photos justifies our Rescaling (`1/255`) and BatchNormalization layers so outdoor lighting changes "
+            "field photos justifies the Rescaling (`1/255`) and BatchNormalization layers so outdoor lighting changes "
             "do not degrade prediction reliability."
         )
     else:
@@ -196,4 +196,5 @@ with tab3:
         st.markdown("---")
         st.subheader("SQLite Production Retraining Audit Log")
         st.dataframe(pd.DataFrame(health["database_summary"]["retraining_history"]), use_container_width=True)
+
 
