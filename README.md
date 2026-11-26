@@ -6,7 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.33+-FF4B4B.svg)](https://streamlit.io/)
 [![Docker](https://img.shields.io/badge/Docker-Compose%20%2B%20Nginx-2496ED.svg)](https://www.docker.com/)
 
-## 1. Project Overview & Extension from Intro to ML Summative
+## 1. Project Overview
 
 The **Introduction to Machine Learning** summative (`crop_classification_project_summative.ipynb`) addressed **7-class agricultural crop classification** using **174 tabular fused optical-radar sensor features** (`WinnipegDataset.txt`), achieving **99.79% test accuracy** with XGBoost and **99.77%** with a baseline Keras neural network while identifying canopy spectral overlap and class imbalance as core domain challenges.
 
@@ -15,21 +15,7 @@ This **MLOps Summative** extends that agricultural crop classification pipeline 
 ### Live Deployment & Walkthrough
 * **Live Streamlit Web App:** [http://82.29.184.200:8501](http://82.29.184.200:8501)
 * **Live FastAPI Swagger Docs:** [http://82.29.184.200:8005/docs](http://82.29.184.200:8005/docs)
-* **4-Minute Video Demo (YouTube):** [Watch End-to-End MLOps Demo](https://youtu.be/<YOUR_YOUTUBE_DEMO_LINK>)
-
-<!-- OPTIONAL SCREENSHOT 1: Live Streamlit Dashboard & Feature Visualizations
-1. Capture a screenshot of http://82.29.184.200:8501 showing Model Uptime / Health metrics and the Plotly charts.
-2. Save it to `docs/streamlit_overview.png` and commit it to Git before pushing.
-3. Uncomment the line below:
-![Live Streamlit Dashboard Overview](docs/streamlit_overview.png)
--->
-
-<!-- OPTIONAL SCREENSHOT 2: Single Prediction & Retraining Audit Log
-1. Save screenshots of Tab 2 prediction or Tab 3 retraining + SQLite audit table to `docs/streamlit_predict.png` / `docs/retrain_audit.png` and commit them to Git.
-2. Uncomment the lines below:
-![Single Crop Prediction](docs/streamlit_predict.png)
-![SQLite Retraining Audit Log](docs/retrain_audit.png)
--->
+* **Video Demo:** [https://youtu.be/bTOmNvEYwGY](https://youtu.be/bTOmNvEYwGY)
 
 ---
 
@@ -67,25 +53,25 @@ This **MLOps Summative** extends that agricultural crop classification pipeline 
 ### Core Pipeline Components
 
 1. **Offline Model Training & Evaluation (`notebook/crop_classification_mlops.ipynb`):**
-   - Extracts per-image RGB channel means, brightness, and contrast variance into `data/feature_stats.csv`.
-   - Applies image preprocessing and augmentation (`RandomFlip('horizontal_and_vertical')`, `RandomRotation(0.15)`, `RandomZoom(0.1)`, `Rescaling(1.0 / 255)`).
-   - Fine-tunes a pre-trained `MobileNetV2` backbone with `BatchNormalization`, `L2(0.001)` weight regularization, `Dropout(0.35)`, `Adam(1e-3)`, `EarlyStopping`, and `ReduceLROnPlateau`.
-   - Evaluates on the holdout `data/test/` split across **5 metrics** plus a **Confusion Matrix**:
-     - **Accuracy:** `0.9091` (90.91%)
-     - **Cross-Entropy Log Loss:** `0.3081`
-     - **Precision (Weighted):** `0.9286` (92.86%)
-     - **Recall (Weighted):** `0.9091` (90.91%)
-     - **F1-Score (Weighted):** `0.9111` (91.11%)
+    - Extracts per-image RGB channel means, brightness, and contrast variance into `data/feature_stats.csv`.
+    - Applies image preprocessing and augmentation (`RandomFlip('horizontal_and_vertical')`, `RandomRotation(0.15)`, `RandomZoom(0.1)`, `Rescaling(1.0 / 255)`).
+    - Fine-tunes a pre-trained `MobileNetV2` backbone with `BatchNormalization`, `L2(0.001)` weight regularization, `Dropout(0.35)`, `Adam(1e-3)`, `EarlyStopping`, and `ReduceLROnPlateau`.
+    - Evaluates on the holdout `data/test/` split across **5 metrics** plus a **Confusion Matrix**:
+      - **Accuracy:** `0.9091` (90.91%)
+      - **Cross-Entropy Log Loss:** `0.3081`
+      - **Precision (Weighted):** `0.9286` (92.86%)
+      - **Recall (Weighted):** `0.9091` (90.91%)
+      - **F1-Score (Weighted):** `0.9111` (91.11%)
 
 2. **Real-Time Inference & Hot-Reload (`src/preprocessing.py`, `src/prediction.py`, `app.py`):**
-   - Standardizes uploaded image bytes to `(1, 224, 224, 3)` `float32` RGB tensors matching the model's built-in `Rescaling` layer (zero training-serving skew).
-   - Caches `models/crop_classifier_model.h5` in RAM and checks file modification timestamps (`os.path.getmtime`) so scaled FastAPI workers automatically reload newly retrained weights.
-   - Exposes `GET /health` (uptime, hostname, SQLite summary), `POST /predict`, `POST /upload-data`, `POST /upload-zip`, and `POST /retrain`.
+    - Standardizes uploaded image bytes to `(1, 224, 224, 3)` `float32` RGB tensors matching the model's built-in `Rescaling` layer (zero training-serving skew).
+    - Caches `models/crop_classifier_model.h5` in RAM and checks file modification timestamps (`os.path.getmtime`) so scaled FastAPI workers automatically reload newly retrained weights.
+    - Exposes `GET /health` (uptime, hostname, SQLite summary), `POST /predict`, `POST /upload-data`, `POST /upload-zip`, and `POST /retrain`.
 
 3. **Data Upload, SQLite Registry & Continuous Retraining (`src/model.py`, `models/mlops_registry.db`):**
-   - Validates single images, bulk images, and `.zip` dataset archives in RAM with `PIL.Image.verify()` before saving verified images under `data/train/<crop>/`.
-   - Logs uploaded files into SQLite (`uploaded_samples`) and appends visual statistics to `data/feature_stats.csv`.
-   - On retraining (`POST /retrain`), backs up the current weights to `models/archive/`, loads `models/crop_classifier_model.h5` as a pre-trained base, fine-tunes with `Adam(learning_rate=1e-5)`, evaluates on `data/test/`, atomically replaces `models/crop_classifier_model.h5` via `.tmp.h5`, and records the run in `retraining_runs`.
+    - Validates single images, bulk images, and `.zip` dataset archives in RAM with `PIL.Image.verify()` before saving verified images under `data/train/<crop>/`.
+    - Logs uploaded files into SQLite (`uploaded_samples`) and appends visual statistics to `data/feature_stats.csv`.
+    - On retraining (`POST /retrain`), backs up the current weights to `models/archive/`, loads `models/crop_classifier_model.h5` as a pre-trained base, fine-tunes with `Adam(learning_rate=1e-5)`, evaluates on `data/test/`, atomically replaces `models/crop_classifier_model.h5` via `.tmp.h5`, and records the run in `retraining_runs`.
 
 ---
 
@@ -150,7 +136,6 @@ docker compose up -d --scale api=4 --no-recreate
 ```
 
 * **Local Docker Compose URLs:** Streamlit UI at `http://localhost:8501` | FastAPI Swagger Docs (via Nginx) at `http://localhost:8000/docs`
-* **Live Hostinger VPS URLs:** Streamlit UI at [http://82.29.184.200:8501](http://82.29.184.200:8501) | FastAPI Swagger Docs at [http://82.29.184.200:8005/docs](http://82.29.184.200:8005/docs)
 
 ---
 
